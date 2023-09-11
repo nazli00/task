@@ -1,0 +1,410 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Mail;
+
+namespace SocialMediaSystem
+{
+    class Program
+    {
+        static List<User> users = new List<User>();
+        static List<Admin> admins = new List<Admin>();
+        static List<Post> posts = new List<Post>();
+        static Dictionary<Admin, List<string>> adminNotifications = new Dictionary<Admin, List<string>>();
+
+        static void Main(string[] args)
+        {
+            users.Add(new User("user1", "password1", "user1@example.com"));
+            users.Add(new User("user2", "password2", "user2@example.com"));
+            admins.Add(new Admin("admin1", "adminpassword1", "admin1@example.com"));
+            admins.Add(new Admin("admin2", "adminpassword2", "admin2@example.com"));
+            posts.Add(new Post(1, "This is the first post content."));
+            posts.Add(new Post(2, "This is the second post content."));
+            posts.Add(new Post(3, "This is the third post content."));
+
+            while (true)
+            {
+                Console.WriteLine("Welcome to the Social Media System!");
+                Console.WriteLine("1. User");
+                Console.WriteLine("2. Admin");
+                Console.WriteLine("3. Exit");
+                Console.Write("Select an option: ");
+
+                if (int.TryParse(Console.ReadLine(), out int choice))
+                {
+                    if (choice == 1)
+                    {
+                        while (true)
+                        {
+                            Console.WriteLine("1. Sign up");
+                            Console.WriteLine("2. Log in");
+                            Console.WriteLine("3. Back to Main Menu");
+                            Console.Write("Select an option: ");
+
+                            if (int.TryParse(Console.ReadLine(), out int userChoice))
+                            {
+                                if (userChoice == 1)
+                                {
+                                    UserSignUp();
+                                }
+                                else if (userChoice == 2)
+                                {
+                                    User user = UserLogin();
+                                    if (user != null)
+                                    {
+                                        UserSubMenu(user);
+                                    }
+                                }
+                                else if (userChoice == 3)
+                                {
+                                    break;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Invalid choice. Please try again.");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("Invalid input. Please enter a valid option.");
+                            }
+                        }
+                    }
+                    else if (choice == 2)
+                    {
+                        while (true)
+                        {
+                            Console.WriteLine("1. Sign up");
+                            Console.WriteLine("2. Log in");
+                            Console.WriteLine("3. Back to Main Menu");
+                            Console.Write("Select an option: ");
+
+                            if (int.TryParse(Console.ReadLine(), out int adminChoice))
+                            {
+                                if (adminChoice == 1)
+                                {
+                                    Admin admin = AdminSignUp();
+                                    if (admin != null)
+                                    {
+                                        SendRegistrationConfirmationEmail(admin);
+
+                                        Console.WriteLine("Admin registered successfully! Registration confirmation email sent.");
+                                    }
+                                }
+                                else if (adminChoice == 2)
+                                {
+                                    Admin admin = AdminLogin();
+                                    if (admin != null)
+                                    {
+                                        AdminSubMenu(admin);
+                                    }
+                                }
+                                else if (adminChoice == 3)
+                                {
+                                    break;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Invalid choice. Please try again.");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("Invalid input. Please enter a valid option.");
+                            }
+                        }
+                    }
+                    else if (choice == 3)
+                    {
+                        Console.WriteLine("Goodbye!");
+                        Environment.Exit(0);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid choice. Please try again.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Invalid input. Please enter a valid option.");
+                }
+            }
+        }
+
+        static void UserSignUp()
+        {
+            Console.Write("Enter a new username: ");
+            string username = Console.ReadLine();
+            Console.Write("Enter a password: ");
+            string password = Console.ReadLine();
+            Console.Write("Enter an email address: ");
+            string email = Console.ReadLine();
+
+            User newUser = new User(username, password, email);
+            users.Add(newUser);
+
+            Console.WriteLine("User registered successfully!");
+        }
+
+        static Admin AdminSignUp()
+        {
+            Console.Write("Enter a new admin username: ");
+            string username = Console.ReadLine();
+            Console.Write("Enter a password: ");
+            string password = Console.ReadLine();
+            Console.Write("Enter an email address: ");
+            string email = Console.ReadLine();
+
+            Admin newAdmin = new Admin(username, password, email);
+            admins.Add(newAdmin);
+
+            return newAdmin;
+        }
+
+        static User UserLogin()
+        {
+            Console.Write("Enter username: ");
+            string username = Console.ReadLine();
+            Console.Write("Enter password: ");
+            string password = Console.ReadLine();
+
+            return users.FirstOrDefault(u => u.Username == username && u.Password == password);
+        }
+
+        static Admin AdminLogin()
+        {
+            Console.Write("Enter admin username: ");
+            string username = Console.ReadLine();
+            Console.Write("Enter password: ");
+            string password = Console.ReadLine();
+
+            return admins.FirstOrDefault(a => a.Username == username && a.Password == password);
+        }
+
+        static void UserSubMenu(User user)
+        {
+            while (true)
+            {
+                Console.WriteLine($"Welcome, {user.Username}!");
+                Console.WriteLine("Posts:");
+                foreach (Post post in posts)
+                {
+                    Console.WriteLine($"Post ID: {post.Id}");
+                    Console.WriteLine($"Content: {post.Content}");
+                    Console.WriteLine($"Likes: {post.Likes}");
+                    Console.WriteLine($"Views: {post.Views}");
+                    Console.WriteLine();
+                }
+
+                Console.WriteLine("1. View a Post");
+                Console.WriteLine("2. Like a Post");
+                Console.WriteLine("3. Logout");
+                Console.Write("Select an option: ");
+
+                if (int.TryParse(Console.ReadLine(), out int choice))
+                {
+                    if (choice == 1)
+                    {
+                        ViewPost(user);
+                    }
+                    else if (choice == 2)
+                    {
+                        LikePost(user);
+                    }
+                    else if (choice == 3)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid choice. Please try again.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Invalid input. Please enter a valid option.");
+                }
+            }
+        }
+
+        static void AdminSubMenu(Admin admin)
+        {
+            while (true)
+            {
+                Console.WriteLine($"Welcome, {admin.Username} (Admin)!");
+                Console.WriteLine("1. View Notifications");
+                Console.WriteLine("2. Logout");
+                Console.Write("Select an option: ");
+
+                if (int.TryParse(Console.ReadLine(), out int choice))
+                {
+                    if (choice == 1)
+                    {
+                        ViewNotifications(admin);
+                    }
+                    else if (choice == 2)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid choice. Please try again.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Invalid input. Please enter a valid option.");
+                }
+            }
+        }
+
+        static void ViewPost(User user)
+        {
+            Console.Write("Enter the ID of the post to view: ");
+
+            if (int.TryParse(Console.ReadLine(), out int postId))
+            {
+                Post post = posts.FirstOrDefault(p => p.Id == postId);
+                if (post != null)
+                {
+                    post.Views++;
+                    Console.WriteLine($"Post Content: {post.Content}");
+                }
+                else
+                {
+                    Console.WriteLine($"Post with ID {postId} not found.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Invalid input. Please enter a valid post ID.");
+            }
+        }
+
+        static void LikePost(User user)
+        {
+            Console.Write("Enter the ID of the post to like: ");
+
+            if (int.TryParse(Console.ReadLine(), out int postId))
+            {
+                Post post = posts.FirstOrDefault(p => p.Id == postId);
+                if (post != null)
+                {
+                    post.Likes++;
+                    NotifyAdmin(user, post);
+                }
+                else
+                {
+                    Console.WriteLine($"Post with ID {postId} not found.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Invalid input. Please enter a valid post ID.");
+            }
+        }
+
+        static void NotifyAdmin(User user, Post post)
+        {
+            foreach (Admin admin in admins)
+            {
+                if (!adminNotifications.ContainsKey(admin))
+                {
+                    adminNotifications[admin] = new List<string>();
+                }
+
+                adminNotifications[admin].Add($"Admin {admin.Username}: User {user.Username} liked post {post.Id}");
+                Console.WriteLine($"Admins notified about the like.");
+            }
+        }
+
+        static void ViewNotifications(Admin admin)
+        {
+            if (adminNotifications.ContainsKey(admin))
+            {
+                Console.WriteLine($"Notifications for {admin.Username} (Admin):");
+                foreach (string notification in adminNotifications[admin])
+                {
+                    Console.WriteLine(notification);
+                }
+            }
+            else
+            {
+                Console.WriteLine("No notifications for this admin.");
+            }
+        }
+
+        static void SendRegistrationConfirmationEmail(Admin admin)
+        {
+            SmtpClient smtpClient = new SmtpClient("your_smtp_server_address")
+            {
+                Port = 587,
+                Credentials = new NetworkCredential("your_email@example.com", "your_email_password"),
+                EnableSsl = true,
+            };
+
+            MailMessage mailMessage = new MailMessage
+            {
+                From = new MailAddress("your_email@example.com"),
+                Subject = "Registration Confirmation",
+                Body = "You successfully registered!!",
+            };
+
+            mailMessage.To.Add(admin.Email);
+
+            try
+            {
+                smtpClient.Send(mailMessage);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending email: {ex.Message}");
+            }
+        }
+    }
+
+    class User
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public string Email { get; set; }
+
+        public User(string username, string password, string email)
+        {
+            Username = username;
+            Password = password;
+            Email = email;
+        }
+    }
+
+    class Admin
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public string Email { get; set; }
+
+        public Admin(string username, string password, string email)
+        {
+            Username = username;
+            Password = password;
+            Email = email;
+        }
+    }
+
+    class Post
+    {
+        public int Id { get; set; }
+        public string Content { get; set; }
+        public int Likes { get; set; }
+        public int Views { get; set; }
+
+        public Post(int id, string content)
+        {
+            Id = id;
+            Content = content;
+            Likes = 0;
+            Views = 0;
+        }
+    }
+}
